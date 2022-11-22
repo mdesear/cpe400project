@@ -38,6 +38,9 @@ for i in range(0, num_nodes):
 
     temp_coords = np.random.uniform(-1, 1, size=(1,3)) # create random 3D coords b/c manim requires 3D coords
     temp_coords[0,2] = 0 # write Z axis to zero b/c we're working in 2D
+    # temp_coords[0,0] = 0 # write Z axis to zero b/c we're working in 2D
+    # temp_coords[0,1] = 0 # write Z axis to zero b/c we're working in 2D
+
     current_node.coordinates = temp_coords
 
     temp_bandwidth = random.randint(0,30) # assigns random bandwidth to each node (Mbps)
@@ -52,24 +55,23 @@ for i in range(0, num_nodes):
 # Here edges are defined by overlapping range_radiuses
 # TODO: This could be optimized by leveraging symmetry
 i = 0
-while i < num_nodes:
 
+while i < num_nodes:
     x1 = node_list[i].coordinates[0,0]
     y1 = node_list[i].coordinates[0,1]
     r1 = node_list[i].radius
 
-    j = i+1
-    while j < num_nodes-1:
-        x2 = node_list[j].coordinates[0,0]
-        y2 = node_list[j].coordinates[0,1]
-        r2 = node_list[j].radius
+    j = 0
+    while j < num_nodes:
+        if j != i:
+            x2 = node_list[j].coordinates[0,0]
+            y2 = node_list[j].coordinates[0,1]
+            r2 = node_list[j].radius
 
-        is_overlap = isOverlap(x1, y1, x2, y2,r1, r2)
+            is_overlap = isOverlap(x1, y1, x2, y2,r1, r2)
 
-        if is_overlap == True: # then the circles are overlapping & are edges
-            print(node_list[i].edges)
-            node_list[i].edges.append(node_list[j].ID)# Save the Node's ID in the other node's edge list
-
+            if is_overlap == True: # then the circles are overlapping & are edges
+                node_list[i].edges.append(node_list[j].ID)# Save the Node's ID in the other node's edge list
         j += 1
     i +=1
 
@@ -86,7 +88,8 @@ class ShowPoints(Scene):
        
         for i in range(0, num_nodes):
             coords = node_list[i].coordinates
-            dot = Dot(coords,radius=0.08, color = BLUE)
+            dot = LabeledDot(Tex(node_list[i].ID, color=BLUE))
+            dot.shift(coords)
             dots.add(dot) # This adds the "dot" to the group "dots"
 
             # Color the Circle Green for overlap Blue else
@@ -104,3 +107,56 @@ class ShowPoints(Scene):
         self.add(axes)
         self.add(circles)
         self.add(dots)
+
+
+
+
+
+
+
+
+
+# class ShowPoints(Scene):
+#     def construct(self):
+
+#         # This Bit Creates The Axes
+#         axes = Axes(x_range=[-5,5,1], y_range = [-3,3,1],tips=False)
+        
+#         # This Bit Displays the Dots from the coords array
+#         dots = VGroup() # This groups all the dots together
+#         circles = VGroup()
+#         for i in range(0, len(coords)):
+#             dot = Dot(coords[i,:],radius=0.08, color = BLUE)
+#             dots.add(dot) # This adds the "dot" to the group "dots"
+
+#             # Color the Circle Green for overlap Blue else
+#             if overlap_list[i] == True:
+#                 range_circle = Circle(radius=range_radius, color = GREEN)
+#                 range_circle.shift(coords[i,:])
+#                 circles.add(range_circle)# Adds the "range_circle" to the group "circles"
+#             else:
+#                 range_circle = Circle(radius=range_radius,color = RED)
+#                 range_circle.shift(coords[i,:])
+#                 circles.add(range_circle)# Adds the "range_circle" to the group "circles"
+
+
+#         # Add to the Scene
+#         self.add(axes)
+#         self.add(circles)
+#         self.add(dots)
+
+
+
+
+
+
+
+
+
+# class GraphManualPosition(Scene):
+#     def construct(self):
+#         vertices = [1, 2, 3, 4]
+#         edges = [(1, 2), (2, 3), (3, 4), (4, 1)]
+#         lt = {1: [0, 0, 0], 2: [1, 1, 0], 3: [1, -1, 0], 4: [-1, 0, 0]}
+#         G = Graph(vertices, edges, layout=lt, labels=True)
+#         self.add(G)
