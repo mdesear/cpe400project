@@ -11,6 +11,34 @@ def isOverlap(x1, y1, x2, y2,r1, r2):
     else:
         return False
 
+def findOverap(node_list, num_nodes):
+    # Find the Edges 
+    # Here edges are defined by overlapping range_radiuses
+    # TODO: This could be optimized by leveraging symmetry
+    i = 0
+
+    while i < num_nodes:
+        x1 = node_list[i].coordinates[0,0]
+        y1 = node_list[i].coordinates[0,1]
+        r1 = node_list[i].radius
+
+        j = 0
+        while j < num_nodes:
+            if j != i:
+                x2 = node_list[j].coordinates[0,0]
+                y2 = node_list[j].coordinates[0,1]
+                r2 = node_list[j].radius
+
+                is_overlap = isOverlap(x1, y1, x2, y2,r1, r2)
+
+                if is_overlap == True: # then the circles are overlapping & are edges
+                    node_list[i].edges.append(node_list[j].ID)# Save the Node's ID in the other node's edge list
+            j += 1
+        i +=1
+
+    return node_list
+
+
 
 # Define Node Class
 class Node:
@@ -50,49 +78,55 @@ for i in range(0, num_nodes):
 
     node_list.append(current_node)
 
+# Find All the circles that overlap
+node_list = findOverap(node_list, num_nodes)
 
-# Find the Edges 
-# Here edges are defined by overlapping range_radiuses
-# TODO: This could be optimized by leveraging symmetry
-i = 0
 
-while i < num_nodes:
-    x1 = node_list[i].coordinates[0,0]
-    y1 = node_list[i].coordinates[0,1]
-    r1 = node_list[i].radius
+# Prepare node information so that graph can recognize it
 
-    j = 0
-    while j < num_nodes:
-        if j != i:
-            x2 = node_list[j].coordinates[0,0]
-            y2 = node_list[j].coordinates[0,1]
-            r2 = node_list[j].radius
+#NOTE FORMAT FOR EDGES: (Source Node, Connected Node)
+# so (1,3) Means node 1 is connected to 3.
+# This is not expandable so if multiple connections: 1->3 & 1 ->4
+# We need (1,3) and (1,4)
 
-            is_overlap = isOverlap(x1, y1, x2, y2,r1, r2)
+node_vertices = []
+node_edges = []
+node_lt = {}
 
-            if is_overlap == True: # then the circles are overlapping & are edges
-                node_list[i].edges.append(node_list[j].ID)# Save the Node's ID in the other node's edge list
-        j += 1
-    i +=1
+for i in range(0, num_nodes):
+    node_vertices.append(node_list[i].ID)
+
+    for j in range(0, len(node_list[i].edges)): # SEE Note above for explaination
+        tup = node_list[i].ID,node_list[i].edges[j]
+        node_edges.append(tup)
+
+    node_lt[node_list[i].ID] = node_list[i].coordinates[0,:].tolist()
+
+
+print(node_vertices)
+print(node_edges)
+print(node_lt)
+
 
 
 class ShowPoints(Scene):
     def construct(self):
 
-        # This Bit Creates The Axes
-        axes = Axes(x_range=[-5,5,1], y_range = [-3,3,1],tips=False)
+        # Graph the Nodes
+        vertices = node_vertices
+        edges = node_edges
+        lt = node_lt
+        G = Graph(vertices, edges, layout=lt, labels=True)
+        self.add(G)
+
+
         
         # This Bit Displays the Dots from the coords array
-        dots = VGroup() # This groups all the dots together
         circles = VGroup()
-       
         for i in range(0, num_nodes):
             coords = node_list[i].coordinates
-            dot = LabeledDot(Tex(node_list[i].ID, color=BLUE))
-            dot.shift(coords)
-            dots.add(dot) # This adds the "dot" to the group "dots"
 
-            # Color the Circle Green for overlap Blue else
+            # Color the circles GREEN if they overlap RED if they don't
             if not node_list[i].edges: # if edges is empty
                 range_circle = Circle(radius=node_list[i].radius, color = RED)
                 range_circle.shift(coords) # move circle from orgin to dot coords
@@ -104,47 +138,7 @@ class ShowPoints(Scene):
 
 
         # Add to the Scene
-        self.add(axes)
         self.add(circles)
-        self.add(dots)
-
-
-
-
-
-
-
-
-
-# class ShowPoints(Scene):
-#     def construct(self):
-
-#         # This Bit Creates The Axes
-#         axes = Axes(x_range=[-5,5,1], y_range = [-3,3,1],tips=False)
-        
-#         # This Bit Displays the Dots from the coords array
-#         dots = VGroup() # This groups all the dots together
-#         circles = VGroup()
-#         for i in range(0, len(coords)):
-#             dot = Dot(coords[i,:],radius=0.08, color = BLUE)
-#             dots.add(dot) # This adds the "dot" to the group "dots"
-
-#             # Color the Circle Green for overlap Blue else
-#             if overlap_list[i] == True:
-#                 range_circle = Circle(radius=range_radius, color = GREEN)
-#                 range_circle.shift(coords[i,:])
-#                 circles.add(range_circle)# Adds the "range_circle" to the group "circles"
-#             else:
-#                 range_circle = Circle(radius=range_radius,color = RED)
-#                 range_circle.shift(coords[i,:])
-#                 circles.add(range_circle)# Adds the "range_circle" to the group "circles"
-
-
-#         # Add to the Scene
-#         self.add(axes)
-#         self.add(circles)
-#         self.add(dots)
-
 
 
 
