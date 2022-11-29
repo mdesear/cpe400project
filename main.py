@@ -119,10 +119,7 @@ class ShowPoints(Scene):
     def construct(self):
 
         # Graph the Nodes
-        vertices = node_vertices
-        edges = node_edges
-        lt = node_lt
-        G = Graph(vertices, edges, layout=lt, labels=True)
+        G = Graph(node_vertices, node_edges, layout=node_lt, labels=True)
         self.add(G)
 
 
