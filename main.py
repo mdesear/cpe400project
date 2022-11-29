@@ -42,20 +42,32 @@ def findOverap(node_list, num_nodes):
 
 # Define Node Class
 class Node:
-  def _init_(self, ID,distanceDict, bandwidth, radius, coordinates,edges):
-    self.ID = ID
-    self.distanceDict = distanceDict
-    self.bandwidth = bandwidth
-    self.radius = radius
-    self.coordinates = coordinates
-    self.edges = edges
-    
+    def _init_(self, ID,distanceDict, bandwidth, radius, coordinates,edges):
+        self.ID = ID
+        self.distanceDict = distanceDict
+        self.bandwidth = bandwidth
+        self.radius = radius
+        self.coordinates = coordinates
+        self.edges = edges
+
+    def genRandomCoordinates(self):
+        # Generate Random Coordinates   
+        temp_coords = np.random.uniform(-2, 2, size=(1,3)) # create random 3D coords b/c manim requires 3D coords
+        temp_coords[0,2] = 0 # write Z axis to zero b/c we're working in 2D
+        self.coordinates = temp_coords
+        
+    def genRandomBandwidth(self):
+        # Generate Random Bandwidth
+        self.bandwidth = random.randint(1, 30)
+        
+
+
 
 # ~~ Create a list of Nodes ~~
 node_list = []
 
 num_nodes = 5
-range_radius = 0.5
+range_radius = 0.75
 
 # Set Up Default Node Attributes
 for i in range(0, num_nodes):
@@ -64,15 +76,9 @@ for i in range(0, num_nodes):
     current_node.ID = i
     current_node.radius = range_radius # assign all nodes the same radius... for now?
 
-    temp_coords = np.random.uniform(-1, 1, size=(1,3)) # create random 3D coords b/c manim requires 3D coords
-    temp_coords[0,2] = 0 # write Z axis to zero b/c we're working in 2D
-    # temp_coords[0,0] = 0 # write Z axis to zero b/c we're working in 2D
-    # temp_coords[0,1] = 0 # write Z axis to zero b/c we're working in 2D
+    current_node.genRandomCoordinates() # generate random coordinates for the node
 
-    current_node.coordinates = temp_coords
-
-    temp_bandwidth = random.randint(0,30) # assigns random bandwidth to each node (Mbps)
-    current_node.bandwidth = temp_bandwidth
+    current_node.genRandomBandwidth() # generate random bandwidth for the node
 
     current_node.edges = []
 
@@ -120,8 +126,7 @@ class ShowPoints(Scene):
         self.add(G)
 
 
-        
-        # This Bit Displays the Dots from the coords array
+        # This bit makes the circles        
         circles = VGroup()
         for i in range(0, num_nodes):
             coords = node_list[i].coordinates
