@@ -1,4 +1,5 @@
 from manim import *
+import numpy as np
 import math
 import random
 
@@ -11,10 +12,11 @@ def isOverlap(x1, y1, x2, y2,r1, r2):
     else:
         return False
 
-def findOverap(node_list, num_nodes):
+def findOverap(node_list):
     # Find the Edges 
     # Here edges are defined by overlapping range_radiuses
     # TODO: This could be optimized by leveraging symmetry
+    num_nodes = len(node_list)
     i = 0
 
     while i < num_nodes:
@@ -32,13 +34,51 @@ def findOverap(node_list, num_nodes):
                 is_overlap = isOverlap(x1, y1, x2, y2,r1, r2)
 
                 if is_overlap == True: # then the circles are overlapping & are edges
-                    node_list[i].edges.append(node_list[j].ID)# Save the Node's ID in the other node's edge list
+                    tup = node_list[i].ID,node_list[j].ID
+                    node_list[i].edges.append(tup)
+
+                    #NOTE FORMAT FOR EDGES: (Source Node, Connected Node)
+                    # so (1,3) Means node 1 is connected to 3.
+                    # This is not expandable so if multiple connections: 1->3 & 1 ->4
+                    # We need (1,3) and (1,4)
             j += 1
         i +=1
 
     return node_list
 
+def cleanGraphVars(node_list):
+    node_vertices = []
+    node_edges = []
+    node_lt = {}
 
+    for i in range(0, len(node_list)):
+        node_vertices.append(node_list[i].ID)
+        node_edges.append(node_list[i].edges)
+        node_lt[node_list[i].ID] = node_list[i].coordinates[0,:].tolist()
+
+    # Flatten the edge list
+    node_edges = sum(node_edges, [])
+
+    return node_vertices, node_edges, node_lt
+
+def updateCircles(node_list):
+    # This bit makes the circles        
+    circles = VGroup()
+    for i in range(0, num_nodes):
+        coords = node_list[i].coordinates
+        print(coords)
+
+        # Color the circles GREEN if they overlap RED if they don't
+        if not node_list[i].edges: # if edges is empty
+            range_circle = Circle(radius=node_list[i].radius, color = RED)
+            range_circle.shift(coords) # move circle from orgin to dot coords
+            circles.add(range_circle) # Adds the "range_circle" to the group "circles"
+        else:
+            range_circle = Circle(radius=node_list[i].radius, color = GREEN)
+            range_circle.shift(coords)
+            circles.add(range_circle) 
+
+    return circles
 
 # Define Node Class
 class Node:
@@ -78,69 +118,128 @@ for i in range(0, num_nodes):
 
     current_node.genRandomCoordinates() # generate random coordinates for the node
 
+    # Static coordinates for testing
+    # test_coords = np.array([[[-1.85189646,  0.068516190,  0.0        ]],
+    #                             [[ 0.85934519, -0.562825780,  0.0        ]],
+    #                             [[-0.57849630,   1.43011906,  0.0        ]],
+    #                             [[ 1.59875145, -1.321039930,  0.0        ]],
+    #                             [[0.854475090,  0.276723650,  0.0        ]] ])
+    # current_node.coordinates = test_coords[i]
+
+
     current_node.genRandomBandwidth() # generate random bandwidth for the node
 
-    current_node.edges = []
+    current_node.edges = [] # initialize empty list of edges
+
 
     node_list.append(current_node)
 
 # Find All the circles that overlap
-node_list = findOverap(node_list, num_nodes)
+node_list = findOverap(node_list)
 
 
-# Prepare node information so that graph can recognize it
 
-#NOTE FORMAT FOR EDGES: (Source Node, Connected Node)
-# so (1,3) Means node 1 is connected to 3.
-# This is not expandable so if multiple connections: 1->3 & 1 ->4
-# We need (1,3) and (1,4)
-
-node_vertices = []
-node_edges = []
-node_lt = {}
-
-for i in range(0, num_nodes):
-    node_vertices.append(node_list[i].ID)
-
-    for j in range(0, len(node_list[i].edges)): # SEE Note above for explaination
-        tup = node_list[i].ID,node_list[i].edges[j]
-        node_edges.append(tup)
-
-    node_lt[node_list[i].ID] = node_list[i].coordinates[0,:].tolist()
-
-
-print(node_vertices)
-print(node_edges)
-print(node_lt)
 
 
 
 class ShowPoints(Scene):
     def construct(self):
 
-        # Graph the Nodes
-        G = Graph(node_vertices, node_edges, layout=node_lt, labels=True)
-        self.add(G)
+        # ~~ Initalize the Base Graph ~~
+        # Make the Graph
+
+        # Prepare node information so that graph can recognize it
+        base_vertices = []
+        base_edges = []
+        base_lt = {}
+        base_vertices, base_edges, base_lt = cleanGraphVars(node_list)
 
 
-        # This bit makes the circles        
-        circles = VGroup()
+        G = Graph(base_vertices, base_edges, layout=base_lt, labels=True)
+
+        # Make the Circles 
+        circles = updateCircles(node_list)
+
+        # Animate the Graph and Circles appearing
+        self.play(FadeIn(circles))
+        self.play(Create(G))
+        self.wait()
+        self.play(FadeOut(circles))
+
+        # Generate random coordinates for the nodes
+
+        # Static coordinates for testing
+        test_coords = np.array([[[-1.85189646,  0.068516190,  0.0        ]],
+                                [[ 0.85934519, -0.562825780,  0.0        ]],
+                                [[-0.57849630,   1.43011906,  0.0        ]],
+                                [[ 1.59875145, -1.321039930,  0.0        ]],
+                                [[0.854475090,  0.276723650,  0.0        ]] ])
+                        
+
         for i in range(0, num_nodes):
-            coords = node_list[i].coordinates
+            node_list[i].coordinates = test_coords[i]
+            node_list[i].edges = [] # reset the edges
 
-            # Color the circles GREEN if they overlap RED if they don't
-            if not node_list[i].edges: # if edges is empty
-                range_circle = Circle(radius=node_list[i].radius, color = RED)
-                range_circle.shift(coords) # move circle from orgin to dot coords
-                circles.add(range_circle) # Adds the "range_circle" to the group "circles"
-            else:
-                range_circle = Circle(radius=node_list[i].radius, color = GREEN)
-                range_circle.shift(coords)
-                circles.add(range_circle) 
+        # Find All the circles that overlap
+        new_node_list = findOverap(node_list)
+
+        # Prepare node information so that graph can recognize it
+        new_node_vertices = [] # these are new becuase I get scopin errors if I don't
+        new_node_edges = []
+        new_node_lt = {}
+        new_node_vertices, new_node_edges, new_node_lt = cleanGraphVars(new_node_list)
+
+        # Make the Graph
+        new_G = Graph(new_node_vertices, new_node_edges, layout=new_node_lt, labels=True)
+
+        # Make the Circles
+        new_circles = updateCircles(new_node_list)
+
+        # Animate the Graph and Circles appearing
+        self.play(FadeIn(new_circles))
+        self.play(Transform(G, new_G))
+        self.wait()
+        self.play(FadeOut(new_circles))
 
 
-        # Add to the Scene
-        self.add(circles)
+print("Hi")
+
+
+
+
+
+
+
+
+
+
+
+            
+
+        
+
+
+        
+        
+     
+
+    
+
+
+                    
+            
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
