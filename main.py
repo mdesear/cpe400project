@@ -80,6 +80,39 @@ def updateCircles(node_list):
 
     return circles
 
+def UpdateGraph(node_list):
+    for i in range(0, len(node_list)):
+                node_list[i].genRandomCoordinates()
+                node_list[i].edges = [] # reset the edges
+
+    # Find All the circles that overlap
+    node_list = findOverap(node_list)
+    # Prepare node information so that graph can recognize it
+    vertices = []
+    edges = []
+    lt = {}
+    vertices, edges, lt = cleanGraphVars(node_list)
+
+
+
+
+    # Make the Graph
+    graph = Graph(vertices, edges, layout=lt, labels=True)
+
+    # # Add Edge labels to the graph
+    # for i in range(0, len(node_list)):
+    #     # find the 
+
+
+    # Make the Circles 
+    circles = updateCircles(node_list)
+
+    return circles, graph 
+
+
+
+
+
 # Define Node Class
 class Node:
     def _init_(self, ID,distanceDict, bandwidth, radius, coordinates,edges):
@@ -92,7 +125,7 @@ class Node:
 
     def genRandomCoordinates(self):
         # Generate Random Coordinates   
-        temp_coords = np.random.uniform(-2, 2, size=(1,3)) # create random 3D coords b/c manim requires 3D coords
+        temp_coords = np.random.uniform(-3, 3, size=(1,3)) # create random 3D coords b/c manim requires 3D coords
         temp_coords[0,2] = 0 # write Z axis to zero b/c we're working in 2D
         self.coordinates = temp_coords
         
@@ -104,105 +137,40 @@ class Node:
 
 
 # ~~ Create a list of Nodes ~~
-node_list = []
+og_node_list = []
 
-num_nodes = 5
-range_radius = 0.75
+num_nodes = 8
+range_radius = 1
 
 # Set Up Default Node Attributes
 for i in range(0, num_nodes):
     current_node = Node() # declare node object
 
-    current_node.ID = i
+    current_node.ID = i # set ID
     current_node.radius = range_radius # assign all nodes the same radius... for now?
-
-    current_node.genRandomCoordinates() # generate random coordinates for the node
-
-    # Static coordinates for testing
-    # test_coords = np.array([[[-1.85189646,  0.068516190,  0.0        ]],
-    #                             [[ 0.85934519, -0.562825780,  0.0        ]],
-    #                             [[-0.57849630,   1.43011906,  0.0        ]],
-    #                             [[ 1.59875145, -1.321039930,  0.0        ]],
-    #                             [[0.854475090,  0.276723650,  0.0        ]] ])
-    # current_node.coordinates = test_coords[i]
-
-
     current_node.genRandomBandwidth() # generate random bandwidth for the node
-
     current_node.edges = [] # initialize empty list of edges
 
-
-    node_list.append(current_node)
-
-# Find All the circles that overlap
-node_list = findOverap(node_list)
-
-
-
+    og_node_list.append(current_node) # add the node to the list of nodes
 
 
 
 class ShowPoints(Scene):
     def construct(self):
-
-        # ~~ Initalize the Base Graph ~~
-        # Make the Graph
-
-        # Prepare node information so that graph can recognize it
-        base_vertices = []
-        base_edges = []
-        base_lt = {}
-        base_vertices, base_edges, base_lt = cleanGraphVars(node_list)
-
-
-        G = Graph(base_vertices, base_edges, layout=base_lt, labels=True)
-
-        # Make the Circles 
-        circles = updateCircles(node_list)
-
+        circles, G = UpdateGraph(og_node_list)
+       
         # Animate the Graph and Circles appearing
         self.play(FadeIn(circles))
         self.play(Create(G))
         self.wait()
-        self.play(FadeOut(circles))
 
-        # Generate random coordinates for the nodes
-
-        # Static coordinates for testing
-        # test_coords = np.array([[[-1.85189646,  0.068516190,  0.0        ]],
-        #                         [[ 0.85934519, -0.562825780,  0.0        ]],
-        #                         [[-0.57849630,   1.43011906,  0.0        ]],
-        #                         [[ 1.59875145, -1.321039930,  0.0        ]],
-        #                         [[0.854475090,  0.276723650,  0.0        ]] ])
-                        
-
-        for i in range(0, num_nodes):
-            node_list[i].genRandomCoordinates()
-            # node_list[i].coordinates = test_coords[i]
-            node_list[i].edges = [] # reset the edges
-
-        # Find All the circles that overlap
-        new_node_list = findOverap(node_list)
-
-        # Prepare node information so that graph can recognize it
-        new_node_vertices = [] # these are new becuase I get scopin errors if I don't
-        new_node_edges = []
-        new_node_lt = {}
-        new_node_vertices, new_node_edges, new_node_lt = cleanGraphVars(new_node_list)
-
-        # Make the Graph
-        new_G = Graph(new_node_vertices, new_node_edges, layout=new_node_lt, labels=True)
-
-        # Make the Circles
-        new_circles = updateCircles(new_node_list)
-
-
+        new_circles, new_G = UpdateGraph(og_node_list)
+        
         # Animate the Graph and Circles appearing
-        self.play(FadeIn(new_circles))
-        self.play(Transform(G, new_G, replace_mobject_with_target_in_scene = True))
+        graph_transform = Transform(G, new_G, replace_mobject_with_target_in_scene = True)
+        circle_transform = Transform(circles, new_circles, replace_mobject_with_target_in_scene = True)
+        self.play(graph_transform,circle_transform)
         self.wait()
-
-
 
 print("Hi")
 
