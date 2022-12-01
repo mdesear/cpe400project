@@ -1,0 +1,6 @@
+# This file is used internally by FFMPEG.
+file 'file:/Users/johnwatson/Library/CloudStorage/GoogleDrive-john.watson3091@gmail.com/Other computers/My Computer/Current School/Network Project/cpe400project/media/videos/main/1080p60/partial_movie_files/ShowPoints/450974505_1843634900_223132457.mp4'
+file 'file:/Users/johnwatson/Library/CloudStorage/GoogleDrive-john.watson3091@gmail.com/Other computers/My Computer/Current School/Network Project/cpe400project/media/videos/main/1080p60/partial_movie_files/ShowPoints/34786186_288836208_2679065215.mp4'
+file 'file:/Users/johnwatson/Library/CloudStorage/GoogleDrive-john.watson3091@gmail.com/Other computers/My Computer/Current School/Network Project/cpe400project/media/videos/main/1080p60/partial_movie_files/ShowPoints/34786186_329969645_4134423242.mp4'
+file 'file:/Users/johnwatson/Library/CloudStorage/GoogleDrive-john.watson3091@gmail.com/Other computers/My Computer/Current School/Network Project/cpe400project/media/videos/main/1080p60/partial_movie_files/ShowPoints/34786186_2475461415_2951671224.mp4'
+file 'file:/Users/johnwatson/Library/CloudStorage/GoogleDrive-john.watson3091@gmail.com/Other computers/My Computer/Current School/Network Project/cpe400project/media/videos/main/1080p60/partial_movie_files/ShowPoints/34786186_329969645_2352466753.mp4'
