@@ -169,15 +169,16 @@ class ShowPoints(Scene):
         # Generate random coordinates for the nodes
 
         # Static coordinates for testing
-        test_coords = np.array([[[-1.85189646,  0.068516190,  0.0        ]],
-                                [[ 0.85934519, -0.562825780,  0.0        ]],
-                                [[-0.57849630,   1.43011906,  0.0        ]],
-                                [[ 1.59875145, -1.321039930,  0.0        ]],
-                                [[0.854475090,  0.276723650,  0.0        ]] ])
+        # test_coords = np.array([[[-1.85189646,  0.068516190,  0.0        ]],
+        #                         [[ 0.85934519, -0.562825780,  0.0        ]],
+        #                         [[-0.57849630,   1.43011906,  0.0        ]],
+        #                         [[ 1.59875145, -1.321039930,  0.0        ]],
+        #                         [[0.854475090,  0.276723650,  0.0        ]] ])
                         
 
         for i in range(0, num_nodes):
-            node_list[i].coordinates = test_coords[i]
+            node_list[i].genRandomCoordinates()
+            # node_list[i].coordinates = test_coords[i]
             node_list[i].edges = [] # reset the edges
 
         # Find All the circles that overlap
@@ -195,11 +196,12 @@ class ShowPoints(Scene):
         # Make the Circles
         new_circles = updateCircles(new_node_list)
 
+
         # Animate the Graph and Circles appearing
         self.play(FadeIn(new_circles))
-        self.play(Transform(G, new_G))
+        self.play(Transform(G, new_G, replace_mobject_with_target_in_scene = True))
         self.wait()
-        self.play(FadeOut(new_circles))
+
 
 
 print("Hi")
