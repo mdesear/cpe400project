@@ -32,7 +32,7 @@ class ShowPoints(Scene):
         
 
         g = (
-            Graph(graph.nodes, graph.edges, layout_config={"seed": 0})
+            Graph(graph.nodes, graph.edges, layout_config={"seed": 0}, labels=True)
             .scale(2.7)
             .rotate(PI / 12)
         )
@@ -48,7 +48,7 @@ class ShowPoints(Scene):
             g.add(
                  #fill the sqaure with black
                 Square(fill_opacity=1, fill_color=BLACK, color=BLACK).scale(0.2).move_to(edge_midpoints[edge]).set_color(BLACK),
-                Tex(str(edge_labels[edge]), color =PINK).move_to(edge_midpoints[edge], offset=0.1*UP+0.1*RIGHT),
+                Tex(str(edge_labels[edge]), color =PINK).move_to(edge_midpoints[edge]),
             )
 
 
@@ -58,9 +58,57 @@ class ShowPoints(Scene):
 
         self.play(Write(g))        
 
+     
 
 
+        def dijkstra(start, end):
+            # initialize the distance to all nodes to infinity
+            distances = {node: float("inf") for node in graph.nodes}
+            # set the distance to the start node to 0
+            distances[start] = 0
+
+            # initialize the previous node to None for all nodes
+            previous = {node: None for node in graph.nodes}
+
+            # initialize the unvisited nodes to all nodes
+            unvisited = set(graph.nodes)
+
+            # while there are still unvisited nodes
+            while unvisited:
+                # get the node with the smallest distance
+                current = min(unvisited, key=lambda node: distances[node])
+
+                # if the current node is the end node, we are done
+                if current == end:
+                    break
+
+                # mark the current node as visited
+                unvisited.remove(current)
+
+                # for each neighbour of the current node
+                for neighbour in graph.neighbors(current):
+                    # use the edge weight of the current node to the neighbour
+                    weight = graph.edges[current, neighbour]['weight']
+
+                    # if the distance to the neighbour is smaller than the current distance
+                    if weight < distances[neighbour]:
+                        # update the distance to the neighbour
+                        distances[neighbour] = weight
+                        # set the previous node of the neighbour to the current node
+                        previous[neighbour] = current
+
+            # initialize the path to the end node
+            path = [end]
+
+            # while the previous node of the current node is not None
+            while previous[path[-1]] is not None:
+                # add the previous node to the path
+                path.append(previous[path[-1]])
+
+            # reverse the path
+            path.reverse()
+
+            return path
 
 
-
-
+        dijkstra(0,13)
