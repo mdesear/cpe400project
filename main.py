@@ -24,11 +24,12 @@ class ShowPoints(Scene):
             graph = nx.generators.random_graphs.gnp_random_graph(n, p)
 
         # add random weights to the edges of the graph
-        for u, v in graph.edges:
-            graph.edges[u, v]['weight'] = randint(1, 10)
+        for u, v in graph.edges:          # Bandwith           # Distance 
+            graph.edges[u, v]['weight'] = (randint(1500, 2500),randint(1, 15))
 
         # display the edge weights on the graph
         edge_labels = nx.get_edge_attributes(graph, 'weight')
+        
         
 
         g = (
@@ -36,6 +37,11 @@ class ShowPoints(Scene):
             .scale(2.7)
             .rotate(PI / 12)
         )
+
+        # change the size of the labeled dots in the graph to 0.2
+        for v in g.vertices:
+            g.vertices[v].scale(0.3)
+
 
         # calculate the midpoint for each edge lines for g 
         edge_midpoints = {}
@@ -48,9 +54,8 @@ class ShowPoints(Scene):
             g.add(
                  #fill the sqaure with black
                 Square(fill_opacity=1, fill_color=BLACK, color=BLACK).scale(0.2).move_to(edge_midpoints[edge]).set_color(BLACK),
-                Tex(str(edge_labels[edge]), color =PINK).move_to(edge_midpoints[edge]),
+                Tex(str(edge_labels[edge]), color =PINK).scale(0.8).move_to(edge_midpoints[edge]),
             )
-
 
         # quickfix for a bug in AniomationGroup's handling of z_index
         for v in g.vertices:
@@ -58,10 +63,8 @@ class ShowPoints(Scene):
 
         self.play(Write(g))        
 
-     
 
-
-        def dijkstra(start, end):
+        def dijkstra(start, end, packet_size):
             # initialize the distance to all nodes to infinity
             distances = {node: float("inf") for node in graph.nodes}
             # set the distance to the start node to 0
@@ -88,7 +91,16 @@ class ShowPoints(Scene):
                 # for each neighbour of the current node
                 for neighbour in graph.neighbors(current):
                     # use the edge weight of the current node to the neighbour
-                    weight = graph.edges[current, neighbour]['weight']
+                    bandwidth_distance_tup = graph.edges[current, neighbour]['weight']
+
+                    # extract the bandwidth and distance from the tuple
+                    bandwidth = bandwidth_distance_tup[0]
+                    distance = bandwidth_distance_tup[1]
+
+
+                    # calculate Processing Delay 
+
+
 
                     # if the distance to the neighbour is smaller than the current distance
                     if weight < distances[neighbour]:
@@ -111,4 +123,4 @@ class ShowPoints(Scene):
             return path
 
 
-        dijkstra(0,13)
+        # dijkstra(0,13, 12000)
