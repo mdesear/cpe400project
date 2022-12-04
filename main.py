@@ -4,6 +4,8 @@ import networkx as nx
 import math
 
 
+
+
 class ShowPoints(Scene):
     def construct(self):
 
@@ -273,6 +275,22 @@ class ShowPoints(Scene):
             self.wait(5)
 
 
+        # Get User Input for the Graph
+        # print the range of nodes the user can choose from
+        print("Enter a number between 0 and " + str(len(graph.nodes) - 1) + " for the start/end node.")
 
+        # Ask the user to pick a start node with in the range of nodes we have
+        start = int(input("Enter a start node: "))
+        while start not in range(1, len(graph.nodes) + 1):
+            start = int(input("Enter a start node: "))
+        # Ask the user to pick an end node with in the range of nodes we have
+        end = int(input("Enter an end node: "))
+        while end not in range(1, len(graph.nodes) + 1):
+            if start == end:
+                print("The start node and end node cannot be the same.")
+                end = int(input("Enter an end node: "))
+            else:
+                end = int(input("Enter an end node: "))
 
-        dijkstra(0,13)
+        print("The Video will take about 2 minutes to render")
+        dijkstra(start,end)
