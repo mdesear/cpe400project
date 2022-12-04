@@ -19,6 +19,7 @@ class ShowPoints(Scene):
 
         VISITED_COLOR = GREEN
         NEIGHBOUR_COLOR = BLUE
+        PATH_COLOR = RED
 
         graph = None
         while graph is None or not nx.is_connected(graph):
@@ -31,6 +32,10 @@ class ShowPoints(Scene):
         )
 
         # add random weights to the edges of the graph
+
+        Velocity = 210000000 # m/s for optical fiber
+        packet_size = 12000 # bits
+
         for u, v in graph.edges:          
             
 
@@ -39,12 +44,21 @@ class ShowPoints(Scene):
             y1 = g._layout[u][1]
             x2 = g._layout[v][0]
             y2 = g._layout[v][1]
-            distance = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+            distance = math.sqrt((x2 - x1)**2 + (y2 - y1)**2) # distance is in meters
+
+            bandwidth = randint(1500, 2500) # bandwidth is in bps
+
+            Transmission_delay = (packet_size / bandwidth) # in sec
+            Propogation_delay = (distance / Velocity) # in sec
+            Queue_delay = 0.0000001 # in sec (arbitrary)
+
+            Processing_delay= Transmission_delay + Propogation_delay + Queue_delay
 
 
-            bandwidth = randint(1500, 2500)
+            graph.edges[u, v]['weight'] = (Processing_delay)
 
-            graph.edges[u, v]['weight'] = (bandwidth, distance)
+
+   
 
         # display the edge weights on the graph
         edge_labels = nx.get_edge_attributes(graph, 'weight')
@@ -62,12 +76,10 @@ class ShowPoints(Scene):
 
         # Add Tex edge labels to the graph at the midpoint of each edge manim line
         for edge in edge_midpoints:
-            bandwidth = edge_labels[edge][0]
-
             g.add(
                  #fill the sqaure with black
                 Square(fill_opacity=1, fill_color=BLACK, color=BLACK).scale(0.2).move_to(edge_midpoints[edge]).set_color(BLACK),
-                Tex(bandwidth, color =PINK).scale(0.5).move_to(edge_midpoints[edge]),
+                Tex(round(edge_labels[edge],2), color =PINK).scale(0.5).move_to(edge_midpoints[edge]),
             )
 
         # quickfix for a bug in AniomationGroup's handling of z_index
@@ -77,58 +89,151 @@ class ShowPoints(Scene):
         self.play(Write(g))        
 
 
-        def dijkstra(start, end, packet_size):
-            # initialize the distance to all nodes to infinity
-            distances = {node: float("inf") for node in graph.nodes}
-            # set the distance to the start node to 0
-            distances[start] = 0
+        
+        #create a function tha runs dijkstra's algorithm on the graph
+        def dijkstra(start, end):
 
-            # initialize the previous node to None for all nodes
-            previous = {node: None for node in graph.nodes}
+            # Add Text in the upper right corner of the screen to display the start and end nodes and packet size
+            start_text = Text("Start Node: " + str(start), color = PINK).scale(0.5).move_to(UP * 2.5 + RIGHT * 6.5)
+            end_text = Text("End Node: " + str(end), color = PINK).scale(0.5).move_to(UP * 2.5 + RIGHT * 6.5 + UP * 0.5)
+            packet_size_text = Text("Packet Size: " + str(packet_size), color = PINK).scale(0.5).move_to(UP * 2.5 + RIGHT * 6.5 + UP * 1)
 
-            # initialize the unvisited nodes to all nodes
-            unvisited = set(graph.nodes)
+            self.play(
+                Write(start_text),
+                Write(end_text),
+                Write(packet_size_text),
+            )
 
-            # while there are still unvisited nodes
+
+            # create a list of nodes that have been visited
+            visited = []
+
+            # create a list of nodes that have not been visited
+            unvisited = []
+
+            # create a dictionary that stores the distance from the start node to each node
+            distance = {}
+
+            # create a dictionary that stores the previous node for each node
+            previous = {}
+
+            # for each node in the graph
+            for node in graph.nodes:
+
+                # if the node is the start node
+                if node == start:
+
+                    # set the distance to the start node to 0
+                    distance[node] = 0
+
+                # otherwise
+                else:
+
+                    # set the distance to infinity
+                    distance[node] = math.inf
+
+                # add the node to the unvisited list
+                unvisited.append(node)
+
+                # set the previous node to None
+                previous[node] = None
+
+            current_node_text = Text("Unvisted Node with Smallest Delay:", color = WHITE).scale(0.5).move_to(UP * 3.5 + LEFT * 5.3)
+            self.play(Write(current_node_text))
+
+
+            # while there are still nodes to visit
             while unvisited:
-                # get the node with the smallest distance
-                current = min(unvisited, key=lambda node: distances[node])
 
-                # if the current node is the end node, we are done
+                # get the node with the smallest distance
+                current = min(unvisited, key=distance.get)
+
+                # Display the current node number next to current_node_text
+                current_node_number = Text(str(current), color = WHITE).scale(0.5).move_to(UP * 3.5 + LEFT * 5.3 + RIGHT * 2.7)
+                self.play(Write(current_node_number))
+
+
+
+
+
+                # if the current node is the end node
                 if current == end:
                     break
 
-                # mark the current node as visited
+                # remove the current node from the unvisited list
                 unvisited.remove(current)
 
+                # add the current node to the visited list
+                visited.append(current)
+
+                # # animate a dot moving along the edge path from the previously visted node to the current node
+                # if current != start:
+                #     d1 = Dot(color=VISITED_COLOR).move_to(g.vertices[previous[current]].get_center())
+
+                #     self.play(
+                #         d1.animate.move_to(g.vertices[current].get_center()),
+                #         FadeOut(d2),
+                #     )
+                    
+
+                # Flash the current node with an indication manim animation, and color the current node Green
+                self.play(
+                    Flash(g.vertices[current], color = VISITED_COLOR, line_length=0.45, flash_radius=0.1),
+                    ReplacementTransform(g.vertices[current], LabeledDot(label = str(current), color = VISITED_COLOR).move_to(g.vertices[current].get_center()), run_time=0.3),
+                )
+                
+                list_of_tuples = []
                 # for each neighbour of the current node
                 for neighbour in graph.neighbors(current):
-                    # Fash the current node in the graph
-                    self.play(Flash(g.vertices[current], color=VISITED_COLOR, flash_radius=0.3))
                     
-                    # use the edge weight of the current node to the neighbour
-                    bandwidth_distance_tup = graph.edges[current, neighbour]['weight']
+                    # color the edge between the current node and the neighbour node Blue
+                    if current < neighbour:
+                        edge_tup = current, neighbour
+                    else:
+                        edge_tup = neighbour, current
 
-                    # extract the bandwidth and distance from the tuple
-                    bandwidth = bandwidth_distance_tup[0]
-                    distance = bandwidth_distance_tup[1]
+              
+                    d2 = Dot(color=NEIGHBOUR_COLOR).move_to(g.vertices[current].get_center())
+
+                    self.play(
+                        g.edges[edge_tup].animate.set_color(NEIGHBOUR_COLOR),
+                        # slightly ofset the dot from the start of edge path
+                        d2.animate.move_to(g.vertices[neighbour].get_center()),
+                        Wiggle(g.vertices[neighbour], color = NEIGHBOUR_COLOR, line_length=0.35, flash_radius=0.1, run_time=0.7),
+                    )
 
 
-                    # calculate Processing Delay 
-                    transmission_delay = packet_size / bandwidth
-                    propagation_delay = distance / 210000000
+                    list_of_tuples.append(edge_tup)
 
-                    # assume Queueing Delay is 0 :)
+                    # if the neighbour has not been visited
+                    if neighbour not in visited:
 
-                    processing_delay = transmission_delay + propagation_delay
+                        # calculate the new distance to the neighbour
+                        new_distance = distance[current] + graph.edges[current, neighbour]['weight']
 
-                    # if the distance to the neighbour is smaller than the current distance
-                    if processing_delay < distances[neighbour]:
-                        # update the distance to the neighbour
-                        distances[neighbour] = processing_delay
-                        # set the previous node of the neighbour to the current node
-                        previous[neighbour] = current
+                        # if the new distance to the neighbour is less than the current distance to the neighbour
+                        if new_distance < distance[neighbour]:
 
+                            # set the distance to the neighbour to the new distance
+                            distance[neighbour] = new_distance
+
+                            # set the previous node of the neighbour to the current node
+                            previous[neighbour] = current
+
+                # set all the edges in the list_of_tuples to their original color simultaneously
+                self.play(
+                    *[
+                        g.edges[edge].animate.set_color(WHITE)
+                        for edge in list_of_tuples
+                    ]
+                )
+                self.play(Unwrite(current_node_number))
+
+            self.play(
+                Unwrite(current_node_number),
+                Unwrite(current_node_text),
+                )
+                                           
             # initialize the path to the end node
             path = [end]
 
@@ -140,7 +245,34 @@ class ShowPoints(Scene):
             # reverse the path
             path.reverse()
 
-            return path
+
+            # Add Text in the upper left corner of the screen to display the path
+            path_text = Text("Path: " + str(path), color = WHITE).scale(0.5).to_corner(UL)
+            self.play(Write(path_text))
 
 
-        dijkstra(0,13, 12000)
+            # animate a dot moving through each node in the path from the start node through intermediary nodes/edges and ending at the end node
+            for i in range(len(path) - 1):
+                d1 = Dot(color=PATH_COLOR).move_to(g.vertices[path[i]].get_center())
+
+                self.play(
+                    d1.animate.move_to(g.vertices[path[i + 1]].get_center()),
+                    Flash(g.vertices[path[i]], color = PATH_COLOR, line_length=0.45, flash_radius=0.1),
+                    ReplacementTransform(g.vertices[path[i]], LabeledDot(label = str(path[i]), color = PATH_COLOR).move_to(g.vertices[path[i]].get_center()), run_time=0.3),
+                    FadeOut(d2),
+                )
+                d2 = d1
+
+            # Color the End Node Red
+            self.play(
+                ReplacementTransform(g.vertices[path[-1]], LabeledDot(label = str(path[-1]), color = PATH_COLOR).move_to(g.vertices[path[-1]].get_center()), run_time=0.3),
+                Flash(g.vertices[path[-1]], color = PATH_COLOR, line_length=0.45, flash_radius=0.1),
+
+            )
+
+            self.wait(5)
+
+
+
+
+        dijkstra(0,13)
