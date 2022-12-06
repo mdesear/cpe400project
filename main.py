@@ -140,7 +140,7 @@ class ShowPoints(Scene):
                 # set the previous node to None
                 previous[node] = None
 
-            current_node_text = Text("Unvisted Node with Smallest Delay:", color = WHITE).scale(0.5).move_to(UP * 3.5 + LEFT * 5.3)
+            current_node_text = Text("Unvisited Node with Smallest Delay:", color = WHITE).scale(0.5).move_to(UP * 3.5 + LEFT * 5.3)
             self.play(Write(current_node_text))
 
 
@@ -281,11 +281,11 @@ class ShowPoints(Scene):
 
         # Ask the user to pick a start node with in the range of nodes we have
         start = int(input("Enter a start node: "))
-        while start not in range(1, len(graph.nodes) + 1):
+        while start not in range(0, len(graph.nodes) + 1):
             start = int(input("Enter a start node: "))
         # Ask the user to pick an end node with in the range of nodes we have
         end = int(input("Enter an end node: "))
-        while end not in range(1, len(graph.nodes) + 1):
+        while end not in range(0, len(graph.nodes) + 1):
             if start == end:
                 print("The start node and end node cannot be the same.")
                 end = int(input("Enter an end node: "))
