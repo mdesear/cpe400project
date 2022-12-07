@@ -172,17 +172,27 @@ class ShowPoints(Scene):
                 # if current != start:
                 #     d1 = Dot(color=VISITED_COLOR).move_to(g.vertices[previous[current]].get_center())
 
+                #     self.add_sound("/Users/johnwatson/Library/CloudStorage/GoogleDrive-john.watson3091@gmail.com/Other computers/My Computer/Current School/Network Project/Tests/Pop.mp3", time_offset= 0.1),
+
                 #     self.play(
                 #         d1.animate.move_to(g.vertices[current].get_center()),
                 #         FadeOut(d2),
                 #     )
-                    
+                # if current == start: 
+                #     self.add_sound("/Users/johnwatson/Library/CloudStorage/GoogleDrive-john.watson3091@gmail.com/Other computers/My Computer/Current School/Network Project/Tests/Pop.mp3", time_offset= 0.1)
+
 
                 # Flash the current node with an indication manim animation, and color the current node Green
+                self.add_sound("/Users/johnwatson/Library/CloudStorage/GoogleDrive-john.watson3091@gmail.com/Other computers/My Computer/Current School/Network Project/Tests/Pop.mp3", time_offset= 0.1)
+
                 self.play(
                     Flash(g.vertices[current], color = VISITED_COLOR, line_length=0.45, flash_radius=0.1),
                     ReplacementTransform(g.vertices[current], LabeledDot(label = str(current), color = VISITED_COLOR).move_to(g.vertices[current].get_center()), run_time=0.3),
                 )
+                
+
+
+
                 
                 list_of_tuples = []
                 # for each neighbour of the current node
@@ -196,6 +206,8 @@ class ShowPoints(Scene):
 
               
                     d2 = Dot(color=NEIGHBOUR_COLOR).move_to(g.vertices[current].get_center())
+
+                    self.add_sound("/Users/johnwatson/Library/CloudStorage/GoogleDrive-john.watson3091@gmail.com/Other computers/My Computer/Current School/Network Project/Tests/Wiggle.mp3")
 
                     self.play(
                         g.edges[edge_tup].animate.set_color(NEIGHBOUR_COLOR),
@@ -257,6 +269,7 @@ class ShowPoints(Scene):
             for i in range(len(path) - 1):
                 d1 = Dot(color=PATH_COLOR).move_to(g.vertices[path[i]].get_center())
 
+                self.add_sound("/Users/johnwatson/Library/CloudStorage/GoogleDrive-john.watson3091@gmail.com/Other computers/My Computer/Current School/Network Project/Tests/Pop.mp3", time_offset= 0.1)
                 self.play(
                     d1.animate.move_to(g.vertices[path[i + 1]].get_center()),
                     Flash(g.vertices[path[i]], color = PATH_COLOR, line_length=0.45, flash_radius=0.1),
@@ -266,6 +279,7 @@ class ShowPoints(Scene):
                 d2 = d1
 
             # Color the End Node Red
+            self.add_sound("/Users/johnwatson/Library/CloudStorage/GoogleDrive-john.watson3091@gmail.com/Other computers/My Computer/Current School/Network Project/Tests/Pop.mp3", time_offset= 0.1)
             self.play(
                 ReplacementTransform(g.vertices[path[-1]], LabeledDot(label = str(path[-1]), color = PATH_COLOR).move_to(g.vertices[path[-1]].get_center()), run_time=0.3),
                 Flash(g.vertices[path[-1]], color = PATH_COLOR, line_length=0.45, flash_radius=0.1),
